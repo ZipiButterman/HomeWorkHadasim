@@ -159,7 +159,6 @@ def set_vaccination(id, *vacc_info):
     vacc_list.append(v.pos_res)
     vacc_list.append(v.recovery_date)
     vacc_list.append(id)
-    corona = [tuple(vacc_list)]
     c.execute("UPDATE vaccination "
                         "SET first_vacc = ?, "
                             "first_prod = ?, "
@@ -171,7 +170,10 @@ def set_vaccination(id, *vacc_info):
                             "fourth_prod = ?, "
                             "pos_res = ?, "
                             "recovery_date = ?"
-                        "WHERE id = ?", (vacc_list.pop(0), vacc_list.pop(0), vacc_list.pop(0), vacc_list.pop(0), vacc_list.pop(0), vacc_list.pop(0), vacc_list.pop(0), vacc_list.pop(0), vacc_list.pop(0), vacc_list.pop(0), vacc_list.pop(0)))
+                        "WHERE id = ?", (vacc_list.pop(0), vacc_list.pop(0), vacc_list.pop(0), 
+                                         vacc_list.pop(0), vacc_list.pop(0), vacc_list.pop(0), 
+                                         vacc_list.pop(0), vacc_list.pop(0), vacc_list.pop(0), 
+                                         vacc_list.pop(0), vacc_list.pop(0)))
     conn.commit()
     c.close()
     conn.close()
