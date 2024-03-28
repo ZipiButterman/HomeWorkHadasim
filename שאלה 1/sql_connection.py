@@ -181,18 +181,26 @@ def set_vaccination(id, *vacc_info):
 def insert_vaccination(id, *vacc_info):
     conn = sqlite3.connect('corona.db')
     c = conn.cursor()
-    list_info = []
-    if len(vacc_info) >= 1:
-        list_info = vacc_info.__getitem__(0)
-    else:
+    list_info = vacc_info.__getitem__(0)
+    if len(list_info) == 0:
         list_info.append('')
         list_info.append('')
     vacc_list, v = create_vacc_list(list_info, id)
     vacc_list.insert(0, id)
     vacc_list.append(v.pos_res)
     vacc_list.append(v.recovery_date)
-    corona = [tuple(vacc_list)]
-    c.executemany("INSERT INTO vaccination VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", corona)
+    c.execute("UPDATE vaccination "
+                        "SET first_vacc = ?, "
+                            "first_prod = ?, "
+                            "second_vacc = ?, "
+                            "second_prod = ?, "
+                            "third_vacc = ?, "
+                            "third_prod = ?, "
+                            "fourth_vacc = ?, "
+                            "fourth_prod = ?, "
+                            "pos_res = ?, "
+                            "recovery_date = ?"
+                        "WHERE id = ?", (vacc_list.pop(0), vacc_list.pop(0), vacc_list.pop(0), vacc_list.pop(0), vacc_list.pop(0), vacc_list.pop(0), vacc_list.pop(0), vacc_list.pop(0), vacc_list.pop(0), vacc_list.pop(0), vacc_list.pop(0)))
     conn.commit()
     c.close()
     conn.close()
