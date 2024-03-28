@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="he">
+    <head>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+        <script>
+            var count = 0;
+            function addVacc() {
+                 count++;
+                if(count == 4)
+                    document.getElementById('addVaccBtn').style.display = 'none';
+                const title = document.getElementById("phone_input");
+                if(count == 1)
+                    title.insertAdjacentHTML("afterend",  "<form id = 'results'>" +
+                                                          "<p>" +
+                                                          "<label for='pos_res' align='center'>מועד קבלת תוצאה חיובית</label>" +
+                                                          "<input type='date' name='pos_res'>" +
+                                                          "</p>" +
+                                                          "<p>" +
+                                                          "<label for='recovery' align='center'>מועד החלמה</label>" +
+                                                          "<input type='date' name='recovery'>" +
+                                                          "</p>" +
+                                                          "</form>");
+                name_input1 = "vacc" + count;
+                name_input2 = "prod" + count;
+                id_form = "corona" + count;
+                title.insertAdjacentHTML("afterend", "<form id='" + name_input1 + "'>" +
+                                                     "<p>" +
+                                                     "<label for='" + name_input1 + "' align='center'>מועד קבלת חיסון</label>" +
+                                                     "<input type='date' name='" + name_input1 + "'>" +
+                                                     "</p>" +
+                                                     "<p>" +
+                                                     "<label for='" + name_input2 + "' align='center'>יצרן חיסון</label>" +
+                                                     "<input id='last_one' type='text' name='" + name_input2 + "'>" +
+                                                     "</p>" +
+                                                     "</form>");
+            }
+            function removeVacc() {
+                var i = 0;
+                var parent = document.getElementById("phone_input");
+                var flag = false;
+                while(count > 0) {
+                    flag = true;
+                    count--;
+                    i++;
+                    parent.nextElementSibling.remove();
+                    parent.nextElementSibling.remove();
+                }
+                if(flag) {
+                    parent.nextElementSibling.remove();
+                    parent.nextElementSibling.remove();
+                }
+            }
+            function removeOneVacc() {
+                var parent = document.getElementById("phone_input");
+                if(count == 1) {
+                    parent.nextElementSibling.remove();
+                    parent.nextElementSibling.remove();
+                }
+                if(count > 0) {
+                    parent.nextElementSibling.remove();
+                    parent.nextElementSibling.remove();
+                    count--;
+                }
+            }
+            function addNewTextArea(response) {
+                var i = 1;
+                var title = document.getElementById(i);
+                while(title != null) {
+                    i++;
+                    title = document.getElementById(i);
+                }
+                name_ta = "" + i
+                name_show = "#" + name_ta;
+                title = document.getElementById("ex");
+                title.insertAdjacentHTML("afterend", "<form style='display: inline-block;' name='example' method='post' id='" + name_ta + "'>" +
+                                                     "<textarea id='ta' readonly style='display: inline;' rows='5' cols='35'  dir='rtl' name='textarea1'></textarea><br/>" +
+                                                     "<p align='center'>" +
+                                                     "<button class='button2' id='show' method='post' type='submit' name='show' value='Show' form='" + name_ta + "'>הצג פרטי לקוח</button>" +
+                                                     "<button class='button2' id='delete' type='submit' method='post' form='" + name_ta + "'>מחיקת לקוח</button>" +
+                                                     "<button class='button2' id='set' name='setBtn' type='submit' method='post' form='ex'>עריכת לקוח</button>" +
+                                                     "</p>" +
+                                                     "</form>");
+                $('#ta').html(response);
+            }
+        </script>
+        <script>
+            $(document).ready(function(){
+                $(document).on('submit', 'form', function(event){
+                    event.preventDefault(); // Prevent default form submission
+                    var formData = $(this).serialize();
+                    if(event.originalEvent.submitter.id == "show") {
+                        $.ajax({
+                            type: 'POST',
+                            url: '/show_data',  // URL to your Python backend
+                            data: formData,
+                            success: function(response) {
+                                const title = document.getElementById("info");
+                                $('#info').html(response);
+                                title.showModal();
+                            }
+                        });
+                    }
+                    if(event.originalEvent.submitter.id == "delete") {
+                        var form_name = "#" + event.target.id;
+                        $.ajax({
+                            type: 'POST',
+                            url: '/delete_patient',
+                            data: formData,
+                            success: function(response) {
+                                document.getElementById(event.target.id).remove();
+                                const title = document.getElementById("info");
+                                $('#info').html(response);
+                                title.showModal();
+                            }
+                        });
+                    }
+                });
+            });
+        </script>
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                document.getElementById('ex').addEventListener('submit', function(event) {
+                    event.preventDefault();
+                    var formData = $(this).serialize();
+                    if(event.submitter.id == "set") {
+                        $.ajax({
+                            type: 'POST',
+                            url: '/set_patient',
+                            data: formData,
+                            success: function(response) {
+                                if(response == 'אחד או יותר מהנתונים לא תקינים') {
+                                    const title = document.getElementById("info");
+                                    $('#info').html(response);
+                                    title.showModal();
+                                }
+                                if(response == 'תעודת זהות לא זהה לתעודת זהות של הפציינט אותו ברצונך לעדכן') {
+                                    const title = document.getElementById("info");
+                                    $('#info').html(response);
+                                    title.showModal();
+                                }
+                                removeVacc();
+                            }
+                        });
+                    }
+                    if(event.submitter.id == "last") {
+                        $.ajax({
+                            type: 'POST',
+                            url: '/create_new_patient',  // URL to your Python backend
+                            data: formData,
+                            success: function(response) {
+                                if(response == 'לקוח בעל תעודת זהות זהה כבר קיים') {
+                                    const title = document.getElementById("info");
+                                    $('#info').html(response);
+                                    title.showModal();
+                                }
+                                else if(response == 'אחד או יותר מהנתונים לא תקינים') {
+                                    const title = document.getElementById("info");
+                                    $('#info').html(response);
+                                    title.showModal();
+                                }
+                                else {
+                                    addNewTextArea(response);
+                                }
+                                removeVacc();
+                            }
+                        });
+                    }
+                });
+            });
+        </script>
+	    <style>
+            label {
+        	    display: inline-block;
+        	    width: 100%;
+        	    align: center;
+      	    }
+      	    input {
+                display: inline-block;
+                width: 50%;
+                height: 30px;
+                text-align: center;
+                margin-right: 25%;
+                margin-left: 25%;
+      	    }
+            body {
+                background-color:lightblue;
+                color:#0b0b64;
+            }
+            .font {
+                font-size: 50px;
+                font-family: "Rubik", "Arial";
+            }
+            .font-body {
+                font-family: "Rubik", "Arial";
+                font-size: 20px;
+            }
+            .font-body2 {
+                font-family: "Rubik", "Arial";
+                font-size: 25px;
+            }
+            .view {
+                widht: 50%;
+                height: 50%;
+            }
+            .button {
+                width: 200px;
+                height: 70px;
+                background-color: #0b0b64;
+                color: white;
+                font-size: 20px;
+                font-family: "Rubik", "Arial";
+            }
+            .button2 {
+                height: 30px;
+                background-color: #0b0b64;
+                color: white;
+                font-family: "Rubik", "Arial";
+                display: inline;
+                align-items: center;'
+            }
+	    </style>
+        <meta charset="utf-8" />
+        <title>נתוני קורונה</title>
+    </head>
+    <body>
+        <h1 align="center" id="title" class="font">קופת חולים</h1>
+	<p>
+		<form class="font-body2" style="display: block; width: 100%;" dir="rtl" name="example" method="post" id="ex">
+			<h1 class="font-body" align="center">הכנס פרטים</h1>
+	     		<p><label for="name"  align="center">שם מלא</label><input placeholder="שם פרטי ושם משפחה" type="text" name="name"></p>
+	    		<p><label for="id" align="center">תעודת זהות</label><input type="text" name="id"></p>
+	     		<p><label for="address" align="center">כתובת</label><input placeholder="עיר מגורים, רחוב ומספר" type="text" name="address"></p>
+            <p><label for="bdate" align="center">תאריך לידה</label><input type="date" name="bdate"></p>
+            <p><label for="tel"  align="center">טלפון</label><input placeholder="טלפון בבית" type="text" name="tel"></p>
+            <p><label for="phone" align="center">טלפון נייד</label><input id="phone_input" type="text" name="phone"></p>
+            <p align="center"><button class="button" id="addVaccBtn" type="button" onclick="addVacc()">הוסף חיסון</button>
+                              <button class="button" id="removeVaccBtn" type="button" onclick="removeOneVacc()">הסר חיסון</button></p>
+            <p align="center"><button class="button" id="last" type="submit"  name="last" form="ex" method="post" >שמור</button></p>
+		</form>
+        {% for element in to_send%}
+        <form style='display: inline-block;' name='example' method='post' dir="rtl" id={{element['id']}}>
+            <textarea id=ta readonly style='display: inline;' rows="5" cols="35" name='textarea1'>{{element['info']}}</textarea><br/>
+            <p align='center'>
+                <button class="button2" id='show' type='submit' method='post' name="show" form={{element['id']}}>הצג פרטי לקוח</button>
+                <button class="button2" id='delete' type='submit' method='post' name="delete" form={{element['id']}}>מחיקת לקוח</button>
+                <button class="button2" id='set' type='submit' method='post' name="set" form="ex">עריכת לקוח</button>
+            </p>
+        </form>
+        {% endfor %}
+        <dialog dir="rtl" id='info'></dialog>
+    </body>
+</html>
