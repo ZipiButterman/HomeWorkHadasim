@@ -149,10 +149,8 @@ def create_vacc_list(list_info, id):
 def set_vaccination(id, *vacc_info):
     conn = sqlite3.connect('corona.db')
     c = conn.cursor()
-    list_info = []
-    if len(vacc_info) > 1:
-        list_info = vacc_info.__getitem__(0)
-    else:
+    list_info = vacc_info.__getitem__(0)
+    if len(list_info) == 0:
         list_info.append('')
         list_info.append('')
     vacc_list, v = create_vacc_list(list_info, id)
